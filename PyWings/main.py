@@ -1,6 +1,6 @@
 import pygame
 import os
-from bg import Background
+from Background import Background
 
 WIDTH, HEIGHT = 900, 500
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -12,6 +12,8 @@ pygame.display.set_caption('Wings')
 
 FPS = 60
 VEL = 3
+
+BORDER = pygame.Rect(WIDTH//2 - 5, 0, 0, HEIGHT)
 
 PLANE_WIDTH, PLANE_HEIGHT = 100, 60
 
@@ -27,6 +29,8 @@ BG = Background(WIN)
 def draw_window(plane):
     # WIN.blit(BG, (0, 0))
 
+    pygame.draw.rect(WIN, (0, 0, 0), BORDER)
+
     WIN.blit(PLANE, plane)
 
     pygame.display.update()
@@ -35,7 +39,7 @@ def draw_window(plane):
 def handle_movement(keys_pressed, plane):
     if keys_pressed[pygame.K_a] and plane.x - VEL > 0:
         plane.x -= VEL
-    if keys_pressed[pygame.K_d] and plane.x + VEL + plane.width < WIDTH:
+    if keys_pressed[pygame.K_d] and plane.x + VEL + plane.width < BORDER.x:
         plane.x += VEL
     if keys_pressed[pygame.K_w] and plane.y - VEL > 0:
         plane.y -= VEL
