@@ -12,7 +12,7 @@ width = 900
 height = 500
 
 OBSTACLE_IMAGE = pygame.image.load(
-    os.path.join('images', 'pxArt.png'))
+    os.path.join('images', 'obstacle.png'))
 
 
 class Obstacle:
