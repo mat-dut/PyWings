@@ -3,7 +3,7 @@ import pygame
 import os
 
 spawn_timer = 0
-movement_speed = 2.5
+movement_speed = 10
 x_size = 50
 # gap_size = 300
 pipes = []
@@ -16,8 +16,9 @@ OBSTACLE_IMAGE = pygame.image.load(
 
 
 class Obstacle:
-    def __init__(self, screen, gap_size, x_pos=width):
+    def __init__(self, screen, gap_size, movement_speed, x_pos=width):
         self.gap_size = gap_size
+        self.movement_speed = movement_speed
         random_height = random.randint(20, height - self.gap_size)
         self.upper_rect = pygame.Rect(x_pos, -5, x_size, random_height)
         self.lower_rect = pygame.Rect(x_pos, random_height + gap_size + 5,

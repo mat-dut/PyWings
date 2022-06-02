@@ -10,13 +10,13 @@ WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 
 SCORE_FONT = pygame.font.Font("font/pixel_font.ttf", 32)
 
-pygame.display.set_caption('Wings')
+pygame.display.set_caption('PyWings')
 
 # Sounds
 ###
 
 FPS = 60
-VEL = 3
+VEL = 8
 
 BORDER = pygame.Rect(WIDTH//2 - 5, 0, 0, HEIGHT)
 
@@ -62,8 +62,9 @@ def main():
     run = True
     spawn_timer = 0
     pipes = []
-    gap_between_pipes = 150
+    gap_between_pipes = 100
     gap_between_upper_and_lower_pipe = 200
+    movement_speed = 10
 
     score = 0
 
@@ -89,7 +90,7 @@ def main():
 
         if spawn_timer >= gap_between_pipes:  # use different values for distance between pipes
             pipes.append(
-                Obstacle(WIN, gap_between_upper_and_lower_pipe))
+                Obstacle(WIN, gap_between_upper_and_lower_pipe, movement_speed))
             spawn_timer = 0
         for pipe in pipes:
             pipe.draw()
@@ -104,7 +105,9 @@ def main():
                 if gap_between_pipes != 20:
                     gap_between_pipes -= 2
                 if gap_between_upper_and_lower_pipe != plane.height + 20:
-                    gap_between_upper_and_lower_pipe -= 5
+                    gap_between_upper_and_lower_pipe -= 2
+
+                movement_speed += .2
 
             # first pipe will be leftmost pipe.
         if pipes and pipes[0].upper_rect.right < 0:
