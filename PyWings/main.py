@@ -2,6 +2,7 @@ import pygame
 import os
 from Background import Background
 from Obstacle import Obstacle
+from Cloud import Cloud
 
 pygame.init()
 
@@ -28,15 +29,24 @@ PLANE_IMAGE = pygame.image.load(
 PLANE = pygame.transform.scale(
     PLANE_IMAGE, (PLANE_WIDTH, PLANE_HEIGHT))
 
+PLANE_ROTATE_UP = pygame.transform.rotate(PLANE, 15)
+PLANE_ROTATE_DOWN = pygame.transform.rotate(PLANE, -15)
+
 BG = Background(WIN)
 
 
-def draw_window(plane, score):
+def draw_window(plane, score, keys_pressed, clouds):
     # WIN.blit(BG, (0, 0))
 
     pygame.draw.rect(WIN, (0, 0, 0), BORDER)
 
-    WIN.blit(PLANE, plane)
+    if keys_pressed[pygame.K_w] and plane.y - VEL > 0:
+        WIN.blit(PLANE_ROTATE_UP, plane)
+    elif keys_pressed[pygame.K_s] and plane.y + VEL + plane.height < HEIGHT - 15:
+        WIN.blit(PLANE_ROTATE_DOWN, plane)
+    else:
+        WIN.blit(PLANE, plane)
+
     WIN.blit(score, (10, 10))
 
     pygame.display.update()
@@ -60,8 +70,11 @@ def main():
 
     clock = pygame.time.Clock()
     run = True
-    spawn_timer = 0
+    pipe_spawn_timer = 0
+    cloud_spawn_timer = 0
+
     pipes = []
+    clouds = []
     gap_between_pipes = 100
     gap_between_upper_and_lower_pipe = 200
     movement_speed = 10
@@ -86,12 +99,22 @@ def main():
         BG.update()
         BG.render()
 
-        spawn_timer += 1
+        pipe_spawn_timer += 1
+        cloud_spawn_timer += 1
 
-        if spawn_timer >= gap_between_pipes:  # use different values for distance between pipes
+        if pipe_spawn_timer >= gap_between_pipes:  # use different values for distance between pipes
             pipes.append(
                 Obstacle(WIN, gap_between_upper_and_lower_pipe, movement_speed))
-            spawn_timer = 0
+            pipe_spawn_timer = 0
+
+        if cloud_spawn_timer >= 75:
+            clouds.append(Cloud(WIN))
+            cloud_spawn_timer = 0
+
+        for cloud in clouds:
+            cloud.draw()
+            cloud.update()
+
         for pipe in pipes:
             pipe.draw()
             pipe.update()
@@ -119,7 +142,7 @@ def main():
         score_text = SCORE_FONT.render(
             f"Wynik: {score}", 1, (0, 0, 0))
 
-        draw_window(plane, score_text)
+        draw_window(plane, score_text, keys_pressed, clouds)
 
     main()
 
