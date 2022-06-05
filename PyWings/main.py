@@ -13,11 +13,23 @@ WIDTH, HEIGHT = 900, 500
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 
 SCORE_FONT = pygame.font.Font("font/pixel_font.ttf", 32)
+ESC_FONT = pygame.font.Font("font/pixel_font.ttf", 16)
 
 pygame.display.set_caption('PyWings')
 BG = Background(WIN)
 BG_IMAGE = pygame.transform.scale(
     pygame.image.load('images/bg.jpg'), (900, 500))
+
+LOGO = pygame.transform.scale(
+    pygame.image.load('images/logo.png'), (772, 170))
+
+SPEAKER_ON = pygame.transform.scale(
+    pygame.image.load('images/speaker_on.png'), (65, 50))
+
+SPEAKER_OFF = pygame.transform.scale(
+    pygame.image.load('images/speaker_off.png'), (65, 50))
+
+sound_mode = True
 
 pygame.mixer.init()
 
@@ -38,6 +50,10 @@ SONG_END = pygame.USEREVENT+1
 pygame.mixer.Channel(1).play(music[random.randint(0, 1)])
 pygame.mixer.Channel(1).set_endevent(SONG_END)
 
+# DEV mute
+pygame.mixer.Channel(1).stop()
+pygame.mixer.Channel(0).stop()
+
 
 def play():
 
@@ -53,6 +69,8 @@ def play():
 
     PLANE = pygame.transform.scale(
         PLANE_IMAGE, (PLANE_WIDTH, PLANE_HEIGHT))
+
+    ESC = pygame.image.load(os.path.join('images', 'esc_button.png'))
 
     PLANE_ROTATE_UP = pygame.transform.rotate(PLANE, 15)
     PLANE_ROTATE_DOWN = pygame.transform.rotate(PLANE, -15)
@@ -70,6 +88,9 @@ def play():
             WIN.blit(PLANE, plane)
 
         WIN.blit(score, (10, 10))
+        WIN.blit(ESC, (10, 65))
+
+        WIN.blit(ESC_FONT.render('- wyjdz do menu', 1, (0, 0, 0)), (55, 65))
 
         pygame.display.update()
 
@@ -89,7 +110,10 @@ def play():
     def main():
         plane = pygame.Rect(100, 100, PLANE_WIDTH, PLANE_HEIGHT)
 
-        pygame.mixer.Channel(0).play(engine, -1)
+        if sound_mode:
+            pygame.mixer.Channel(0).play(engine, -1)
+        else:
+            pass
 
         # pygame.mouse.set_visible(False)
 
@@ -154,7 +178,8 @@ def play():
 
                 if pipe.collide(plane):
                     run = False  # reset the game
-                    pygame.mixer.Channel(2).play(collision)
+                    if sound_mode:
+                        pygame.mixer.Channel(2).play(collision)
 
             for pipe in pipes:
                 if pipe.score(plane):
@@ -184,32 +209,38 @@ def play():
 
 def main_menu():
 
+    global sound_mode
+
     pygame.mouse.set_visible(True)
 
     pygame.mixer.Channel(0).stop()
+
+    if sound_mode:
+        SPEAKER_BUTTON = Button(image=SPEAKER_ON, pos=(WIDTH-50, HEIGHT-50),
+                                text_input="", font=pygame.font.Font(
+            "font/pixel_font.ttf", 32), base_color="#d7fcd4", hovering_color="White")
+    else:
+        SPEAKER_BUTTON = Button(image=SPEAKER_OFF, pos=(WIDTH-50, HEIGHT-50),
+                                text_input="", font=pygame.font.Font(
+            "font/pixel_font.ttf", 32), base_color="#d7fcd4", hovering_color="White")
 
     while True:
         WIN.blit(BG_IMAGE, (0, 0))
 
         MENU_MOUSE_POS = pygame.mouse.get_pos()
 
-        MENU_TEXT = pygame.font.Font(
-            "font/pixel_font.ttf", 32).render("MENU", True, "#b68f40")
-        MENU_RECT = MENU_TEXT.get_rect(center=(WIDTH//2, HEIGHT//2-150))
+        MENU_RECT = LOGO.get_rect(center=(WIDTH//2, HEIGHT//2-150))
 
         PLAY_BUTTON = Button(image=pygame.transform.scale(pygame.image.load("images/Play Rect.png"), (200, 50)), pos=(WIDTH//2, HEIGHT//2),
                              text_input="GRAJ", font=pygame.font.Font(
             "font/pixel_font.ttf", 32), base_color="#d7fcd4", hovering_color="White")
-        OPTIONS_BUTTON = Button(image=pygame.transform.scale(pygame.image.load("images/Options Rect.png"), (200, 50)), pos=(WIDTH//2, HEIGHT//2+75),
-                                text_input="OPCJE", font=pygame.font.Font(
-            "font/pixel_font.ttf", 32), base_color="#d7fcd4", hovering_color="White")
-        QUIT_BUTTON = Button(image=pygame.transform.scale(pygame.image.load("images/Quit Rect.png"), (200, 50)), pos=(WIDTH//2, HEIGHT//2+150),
+        QUIT_BUTTON = Button(image=pygame.transform.scale(pygame.image.load("images/Quit Rect.png"), (200, 50)), pos=(WIDTH//2, HEIGHT//2+75),
                              text_input="WYJDZ", font=pygame.font.Font(
             "font/pixel_font.ttf", 32), base_color="#d7fcd4", hovering_color="White")
 
-        WIN.blit(MENU_TEXT, MENU_RECT)
+        WIN.blit(LOGO, MENU_RECT)
 
-        for button in [PLAY_BUTTON, OPTIONS_BUTTON, QUIT_BUTTON]:
+        for button in [PLAY_BUTTON, SPEAKER_BUTTON, QUIT_BUTTON]:
             button.changeColor(MENU_MOUSE_POS)
             button.update(WIN)
 
@@ -220,14 +251,23 @@ def main_menu():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if PLAY_BUTTON.checkForInput(MENU_MOUSE_POS):
                     play()
-                if OPTIONS_BUTTON.checkForInput(MENU_MOUSE_POS):
-                    # options()
-                    pass
                 if QUIT_BUTTON.checkForInput(MENU_MOUSE_POS):
                     pygame.quit()
                     sys.exit()
-            if event.type == SONG_END:
-                print('tak')
+                if SPEAKER_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    if SPEAKER_BUTTON.image == SPEAKER_ON:
+                        SPEAKER_BUTTON.image = SPEAKER_OFF
+                        pygame.mixer.Channel(0).stop()
+                        pygame.mixer.Channel(1).stop()
+                        sound_mode = False
+                    else:
+                        SPEAKER_BUTTON.image = SPEAKER_ON
+                        pygame.mixer.Channel(1).play(
+                            music[random.randint(0, 1)])
+                        sound_mode = True
+
+                if event.type == SONG_END:
+                    pygame.mixer.Channel(1).play(music[random.randint(0, 1)])
 
         pygame.display.update()
 
