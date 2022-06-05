@@ -5,6 +5,7 @@ from Obstacle import Obstacle
 from Cloud import Cloud
 from Button import Button
 import sys
+import random
 
 pygame.init()
 
@@ -20,13 +21,25 @@ BG_IMAGE = pygame.transform.scale(
 
 pygame.mixer.init()
 
-engine = pygame.mixer.music.load(os.path.join('sounds', 'engine.mp3'))
+engine = pygame.mixer.Sound(os.path.join('sounds', 'engine.ogg'))
+music = [pygame.mixer.Sound(os.path.join('sounds', 'bg_music1.ogg')), pygame.mixer.Sound(
+    os.path.join('sounds', 'bg_music2.ogg'))]
+
+collision = pygame.mixer.Sound(os.path.join('sounds', 'collision.ogg'))
+collision.set_volume(0.6)
+
+engine.set_volume(0.2)
+
+for i in range(len(music)):
+    music[i].set_volume(0.2)
+
+SONG_END = pygame.USEREVENT+1
+
+pygame.mixer.Channel(1).play(music[random.randint(0, 1)])
+pygame.mixer.Channel(1).set_endevent(SONG_END)
 
 
 def play():
-
-    # Sounds
-    ###
 
     FPS = 60
     VEL = 8
@@ -76,7 +89,7 @@ def play():
     def main():
         plane = pygame.Rect(100, 100, PLANE_WIDTH, PLANE_HEIGHT)
 
-        pygame.mixer.music.play(-1)
+        pygame.mixer.Channel(0).play(engine, -1)
 
         # pygame.mouse.set_visible(False)
 
@@ -113,6 +126,9 @@ def play():
                         plane.move_ip(
                             event.pos[0] - plane.centerx, event.pos[1] - plane.centery)
 
+                if event.type == SONG_END:
+                    pygame.mixer.Channel(1).play(music[random.randint(0, 1)])
+
             BG.update()
             BG.render()
 
@@ -138,6 +154,7 @@ def play():
 
                 if pipe.collide(plane):
                     run = False  # reset the game
+                    pygame.mixer.Channel(2).play(collision)
 
             for pipe in pipes:
                 if pipe.score(plane):
@@ -169,7 +186,7 @@ def main_menu():
 
     pygame.mouse.set_visible(True)
 
-    pygame.mixer.music.stop()
+    pygame.mixer.Channel(0).stop()
 
     while True:
         WIN.blit(BG_IMAGE, (0, 0))
@@ -209,6 +226,8 @@ def main_menu():
                 if QUIT_BUTTON.checkForInput(MENU_MOUSE_POS):
                     pygame.quit()
                     sys.exit()
+            if event.type == SONG_END:
+                print('tak')
 
         pygame.display.update()
 
